@@ -1,44 +1,36 @@
 import globs
 
-class Credentials (object):
-  def __init__ (self, access_token=None):
-    self.access_token = access_token
-
-  def refresh (self, http):
-    # get new access_token
-    # this only gets called if access_token is None
-    return
-
 def main():
     allrows = ''
     globs.DBSOURCE = 'gdocs'
     if globs.DBSOURCE == 'local':
-        import shelve
-        with shelve.open('drows.db') as allrows:  
-            allrows['1'] = ['foo', 'bar', 'Lumberjack', 'Knights']
-            allrows['2'] = ['Hello', 'World',  '?', '?']
-            allrows['3'] = ['Spam', 'Eggs', '?', '?']
+        import shelve, csv
         allrows = shelve.open('drows.db')
-        globs.lastrow = len(allrows)
+        with open('sample.csv', newline='') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+            for globs.lastrow, row in enumerate(spamreader):
+                allrows[str(globs.lastrow)] = row
+            for row in spamreader:
+                print(', '.join(row))
+        allrows.close()       
+        allrows = shelve.open('drows.db')
+        for rowkey in allrows:
+            print(allrows[rowkey])
     elif globs.DBSOURCE == 'gdocs':
         import pickle, gspread
         from oauth2client.service_account import ServiceAccountCredentials
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         credentials = ServiceAccountCredentials.from_json_keyfile_name('gropey_secret.json', scope)
         gc = gspread.authorize(credentials)
-        allrows = gc.open("use this").sheet1
-        for globs.lastrow in range(1, allrows.row_count):
-            arow = allrows.row_values(globs.lastrow)
+        wks = gc.open("use this").sheet1
+        for globs.lastrow in range(1, wks.row_count):
+            arow = wks.row_values(globs.lastrow)
             if arow:
-                pass
-                #print(str(arow))
+                print(str(arow))
             else:
-                break  
+                break 
     else:
         pass
-
-    print(allrows)
-    print(globs.lastrow)
 
     return
 
