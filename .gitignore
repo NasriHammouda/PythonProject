@@ -1,0 +1,7 @@
+*.pkl
+*.db.bak
+*.db.dat
+*.db.dir
+*.csv
+*.json
+__pycache__/
