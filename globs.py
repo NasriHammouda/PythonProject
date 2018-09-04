@@ -1,2 +1,1 @@
-DBSOURCE = ''
 lastrow = 0
