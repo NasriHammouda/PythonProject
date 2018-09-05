@@ -1,9 +1,9 @@
 import globs
 
 def main():
+    globs.gfuncs = [x.lower() for x in globals().keys() if x[:2] != '__']
     for dbsource in ['gdocs', 'local']:
         dosheet(dbsource)
-        print(globs.fargs)
         print()
 
 def dosheet(dbsource):
@@ -39,34 +39,58 @@ def dosheet(dbsource):
 
 def dorow(rownum, arow):
     if rownum == '1':
-        dofuncs(arow)
+        globs.funcs = [x.lower() for x in arow]
+        #print(globs.funcs)
+        row1funcs(arow)
     else:
-        print(arow)
+        for coldex, acell in enumerate(arow):
+            if globs.funcs[coldex] in globs.gfuncs:
+                if acell == '?':
+                    evalfunc(coldex, arow)        
 
-def dofuncs(arow):
+
+def evalfunc(coldex, arow):    
+    fname = globs.funcs[coldex]
+    #print(globs.fargs)
+    #return
+    fargs = globs.fargs[coldex]
+    evalme = "%s(" % fname
+    if fargs:
+        #print(fname, fargs)
+        for anarg in fargs:
+            evalme = "%s%s='xxx', " % (evalme, anarg)
+            # fargs[anarg] == None:
+                #print(fname, anarg)
+        evalme = evalme[:-2] + ')'
+        print(evalme)
+
+
+def row1funcs(arow):
     fargs = {}
-    for rowdex, fname in enumerate(arow):
-        rowdex += 1
-        if fname in globals():
-            fargs[rowdex] = {}
+    for coldex, fname in enumerate(arow):
+        if fname.lower() in globs.gfuncs:
+            fargs[coldex] = {}
             from inspect import signature, _empty
             sig = signature(eval(fname))
             for param in sig.parameters.values():
                 pname = param.name
                 pdefault = param.default
                 if pdefault is _empty:
-                    fargs[rowdex][pname] = None
+                    fargs[coldex][pname] = None
                 else:
-                    fargs[rowdex][pname] = pdefault
+                    fargs[coldex][pname] = pdefault
+    print(fargs)
     globs.fargs = fargs
 
-    
+
+                    
+
 
 def Func1():
-    return "Ni" 
+    return "No arguments here" 
 
 def Func2(param1, param2='', status='Okay'):
-    return "I'm okay"        
+    return "My params are: %s, %s" % (param1, param2)        
 
 if __name__ == "__main__":
     main()
