@@ -3,6 +3,8 @@ import globs
 def main():
     for dbsource in ['gdocs', 'local']:
         dosheet(dbsource)
+        print(globs.fargs)
+        print()
 
 def dosheet(dbsource):
     allrows = ''
@@ -10,15 +12,15 @@ def dosheet(dbsource):
         import shelve, csv
         allrows = shelve.open('drows.db')
         with open('sample.csv', newline='') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-            for globs.lastrow, row in enumerate(spamreader):
-                allrows[str(globs.lastrow)] = row
-            for row in spamreader:
-                print(', '.join(row))
+            reader = csv.reader(csvfile)
+            for rowdex, arow in enumerate(reader):
+                allrows[str(rowdex + 1)] = arow
+            #for row in spamreader:
+                #print(', '.join(row))
         allrows.close()       
         allrows = shelve.open('drows.db')
-        for rowkey in allrows:
-            print(allrows[rowkey])
+        for rowkey in sorted(allrows):
+            dorow(rowkey, allrows[rowkey])
     elif dbsource == 'gdocs':
         import pickle, gspread
         from oauth2client.service_account import ServiceAccountCredentials
@@ -26,52 +28,44 @@ def dosheet(dbsource):
         credentials = ServiceAccountCredentials.from_json_keyfile_name('gropey_secret.json', scope)
         gc = gspread.authorize(credentials)
         wks = gc.open("use this").sheet1
-        for globs.lastrow in range(1, wks.row_count):
-            arow = wks.row_values(globs.lastrow)
+        for rowdex in range(1, wks.row_count):
+            arow = wks.row_values(rowdex)
             if arow:
-                print(str(arow))
+                dorow(str(rowdex), arow)
             else:
                 break 
     else:
         pass
 
-    return
+def dorow(rownum, arow):
+    if rownum == '1':
+        dofuncs(arow)
+    else:
+        print(arow)
 
-    '''
+def dofuncs(arow):
     fargs = {}
-    for item in allrows['0']:
-        fname = allrows['0'][item]
+    for rowdex, fname in enumerate(arow):
+        rowdex += 1
         if fname in globals():
-            fargs[fname] = {}
+            fargs[rowdex] = {}
             from inspect import signature, _empty
             sig = signature(eval(fname))
-            # print("%s is a function with arguments %s" % (fname, sig))
             for param in sig.parameters.values():
                 pname = param.name
                 pdefault = param.default
                 if pdefault is _empty:
-                    fargs[fname][pname] = None
-                    #print('Required parameter: %s %s' % (fname, pname))
+                    fargs[rowdex][pname] = None
                 else:
-                    fargs[fname][pname] = pdefault
-                    #print('I have default value for: %s %s %s' % (fname, pname, pdefault))
-    # print(fargs)
-    '''
+                    fargs[rowdex][pname] = pdefault
+    globs.fargs = fargs
 
-    for item in allrows:
-        if item != '0':
-            print("%s: %s" % (item, allrows[item]))
+    
 
-def delrow(allrows, rowkey):
-    try:
-        del allrows[rowkey]
-    except:
-        pass
-
-def Knights():
+def Func1():
     return "Ni" 
 
-def Lumberjack(job, play='', status='Okay'):
+def Func2(param1, param2='', status='Okay'):
     return "I'm okay"        
 
 if __name__ == "__main__":
