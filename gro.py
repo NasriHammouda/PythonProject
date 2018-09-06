@@ -33,19 +33,6 @@ import globs #Create objects that don't have to be passed as arguments
 def main():
     """Allows processing of multiple worksheets
 
-    This main function could have been the entire dosheet function, but this
-    extra level allows for looping through multiple worksheet sources and serves
-    as a hook for future automation like scheduled tasks."""
-    funcs = [x for x in globals().keys() if x[:2] != '__'] #list all functions
-    globs.funcslc = [x.lower() for x in funcs] #lower-case all function names
-    globs.transfunc = dict(zip(globs.funcslc, funcs)) #Keep translation table
-    for dbsource in ['gdocs', 'local']: #Each dbsource represents one worksheet
-        dosheet(dbsource)
-        print()
-
-def dosheet(dbsource):
-    """Steps through active worksheet feeding each row for processing.
-
     The purpose of this function is to feed Python lists representing rows
     of a worksheet into the processrow function, which handles question mark
     replacement. This is the outer loop of that process representing the entire
@@ -53,40 +40,46 @@ def dosheet(dbsource):
     csv and other sources for processing large datasets and scheduled tasks, or
     in the second case, from Google Spreadsheets for smaller datasets, but a more
     interactive approach."""
-    allrows = ''
-    if dbsource == 'local':
-        #This is the "shelve" route, necessary for big data sets, useful for csv's
-        import shelve, csv
-        allrows = shelve.open('drows.db')
-        with open('sample.csv', newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            for rowdex, arow in enumerate(reader): #Dump entire csv into shelve.
-                allrows[str(rowdex + 1)] = arow
-        allrows.close()
-        #We can add support for much more than csv here through "shove" module       
-        allrows = shelve.open('drows.db')
-        for rowkey in sorted(allrows): #Process each row (list) from the shelve
-            processrow(rowkey, allrows[rowkey])
-    elif dbsource == 'gdocs':
-        #This is the Google Spreadsheet route for smaller interactive sessions.
-        import pickle, gspread
-        from oauth2client.service_account import ServiceAccountCredentials
-        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        credentials = ServiceAccountCredentials.from_json_keyfile_name('gropey_secret.json', scope)
-        gc = gspread.authorize(credentials)
-        try:
-            wks = gc.open("use this").sheet1 #HTTP connections errors happen here.
-        except:
-            print("Couldn't reach Google Docs")
-            return
-        for rowdex in range(1, wks.row_count): #Start stepping through every row
-            arow = wks.row_values(rowdex)
-            if arow: #But only process it if it does not come back as empty list
-                processrow(str(rowdex), arow)
-            else:
-                break #Stop grabbing new rows at the first empty one encoutered
-    else:
-        pass
+    funcs = [x for x in globals().keys() if x[:2] != '__'] #list all functions
+    globs.funcslc = [x.lower() for x in funcs] #lower-case all function names
+    globs.transfunc = dict(zip(globs.funcslc, funcs)) #Keep translation table
+    for dbsource in ['gdocs', 'local']: #Each dbsource represents one worksheet
+        dbmethod = {'local': dblocal, 'gdocs': dbgdocs}
+        dbmethod[dbsource]()
+        print()
+
+def dblocal():
+    #This is the "shelve" route, necessary for big data sets, useful for csv's
+    import shelve, csv
+    allrows = shelve.open('drows.db')
+    with open('sample.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        for rowdex, arow in enumerate(reader): #Dump entire csv into shelve.
+            allrows[str(rowdex + 1)] = arow
+    allrows.close()
+    #We can add support for much more than csv here through "shove" module       
+    allrows = shelve.open('drows.db')
+    for rowkey in sorted(allrows): #Process each row (list) from the shelve
+        processrow(rowkey, allrows[rowkey])
+
+def dbgdocs():
+    #This is the Google Spreadsheet route for smaller interactive sessions.
+    import pickle, gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    credentials = ServiceAccountCredentials.from_json_keyfile_name('gropey_secret.json', scope)
+    gc = gspread.authorize(credentials)
+    try:
+        wks = gc.open("use this").sheet1 #HTTP connections errors happen here.
+    except:
+        print("Couldn't reach Google Docs")
+        return
+    for rowdex in range(1, wks.row_count): #Start stepping through every row
+        arow = wks.row_values(rowdex)
+        if arow: #But only process it if it does not come back as empty list
+            processrow(str(rowdex), arow)
+        else:
+            break #Stop grabbing new rows at the first empty one encoutered
 
 def processrow(rownum, arow):
     """Separates row-1 handling from question mark dection on all other row.
