@@ -60,7 +60,7 @@ def dblocal():
     #We can add support for much more than csv here through "shove" module       
     allrows = shelve.open('drows.db')
     for rowkey in sorted(allrows): #Process each row (list) from the shelve
-        processrow(rowkey, allrows[rowkey])
+        newrow = processrow(rowkey, allrows[rowkey])
 
 def dbgdocs():
     #This is the Google Spreadsheet route for smaller interactive sessions.
@@ -77,7 +77,13 @@ def dbgdocs():
     for rowdex in range(1, wks.row_count): #Start stepping through every row
         arow = wks.row_values(rowdex)
         if arow: #But only process it if it does not come back as empty list
-            processrow(str(rowdex), arow)
+            newrow = (processrow(str(rowdex), arow))
+            for coldex, acell in enumerate(newrow):
+                coldex += 1
+                if rowdex != 1:
+                    if arow[coldex-1] == '?':
+                        wks.update_cell(rowdex, coldex, acell)
+                        #print(rowdex, coldex, arow[coldex-1], acell)
         else:
             break #Stop grabbing new rows at the first empty one encoutered
 
@@ -89,18 +95,19 @@ def processrow(rownum, arow):
     question mark, it determines whether to invoke the functionindicated by 
     the column label, using values from the active row as parameter values
     if available, parameter defaults if not, and None if not found."""
+    changedrow = arow[:]
     if rownum == '1':
         #Row 1 is always specially handled because it contains functions names.
-        globs.row1 = [x.lower() for x in arow]
-        row1funcs(arow)
+        globs.row1 = [x.lower() for x in changedrow]
+        row1funcs(changedrow)
     else:
         #All subsequent rows are checked for question mark replacement requests.
-        for coldex, acell in enumerate(arow):
+        for coldex, acell in enumerate(changedrow):
             if globs.row1[coldex] in globs.funcslc:
                 if acell == '?':
-                    arow[coldex] = evalfunc(coldex, arow)        
+                    changedrow[coldex] = evalfunc(coldex, changedrow)        
                     #print(replaceqmwith)
-    print(arow)                
+    return(changedrow)                
 
 def row1funcs(arow):
     """Scans row-1 for names of global functions and builds dict of requirements
