@@ -1,3 +1,4 @@
 fargs = {}
-funcs = []
-gfuncs = []
+row1 = []
+funcslc = []
+transfuncs = {}
