@@ -206,5 +206,5 @@ def Func1():
 def Func2(param1, param2='', status='Okay'):
     return "%s %s" % (param1, param2)        
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
