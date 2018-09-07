@@ -29,6 +29,16 @@ accompanied by a Youtube video. Playlist in mikelevinseo youtube channel.
 """
 
 import globs #Create objects that don't have to be passed as arguments
+from flask import Flask
+app = Flask(__name__)
+from flask import request
+
+@app.route("/")
+def hello():
+    if "go" in request.args:
+        main()
+        return "Replaced questionmarks"
+    return 'doing nothing'
 
 def main():
     """Allows processing of multiple worksheets
@@ -208,3 +218,6 @@ def Func2(param1, param2='', status='Okay'):
 
 #if __name__ == "__main__":
 #    main()
+
+if __name__ == "__main__":
+    app.run(debug=True)
