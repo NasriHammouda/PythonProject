@@ -2,16 +2,6 @@
 
 Pipulate lets you collect data straight off of the Web into spreadsheets
 
-______ _             _       _                            
-| ___ (_)           | |     | |                           
-| |_/ /_ _ __  _   _| | __ _| |_ ___   ___ ___  _ __ ___  
-|  __/| | '_ \| | | | |/ _` | __/ _ \ / __/ _ \| '_ ` _ \ 
-| |   | | |_) | |_| | | (_| | ||  __/| (_| (_) | | | | | |
-\_|   |_| .__/ \__,_|_|\__,_|\__\___(_\___\___/|_| |_| |_|
-        | |                                               
-        |_|                                               
-
-
 Got a list that you need to look up something for eveyr item - like grabbing
 litle tags for a list of URLs? Well, then Pipulate is your answer! For example,
 for any given URL. you will be able to:
