@@ -32,13 +32,21 @@ import globs #Create objects that don't have to be passed as arguments
 from flask import Flask
 app = Flask(__name__)
 from flask import request
+from flask import render_template
 
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def hello():
-    if "go" in request.args:
-        main()
-        return "Replaced questionmarks"
-    return 'doing nothing'
+    if request.method == 'POST':
+        #A hook for uploading CSV files
+        return "CSV file upload"
+    else:
+        if request.args:
+            if "gkey" in request.args:
+                globs.GKEY = request.args.get('gkey')
+                main()
+                return "Replaced questionmarks"
+        else:
+            return render_template('pipulate.html', name="Nasri")
 
 def main():
     """Allows processing of multiple worksheets
@@ -85,7 +93,8 @@ def dbgdocs():
     credentials = ServiceAccountCredentials.from_json_keyfile_name('gropey_secret.json', scope)
     gc = gspread.authorize(credentials)
     try:
-        wks = gc.open("use this").sheet1 #HTTP connections errors happen here.
+        wks = gc.open_by_key(globs.GKEY).sheet1 #HTTP connections errors happen here.
+        #https://docs.google.com/spreadsheets/d/14FBYSseJaYxxB6f3jl4PT0BhQsyNwXtLGhn892lylvY/edit?usp=sharing
     except:
         print("Couldn't reach Google Docs")
         return
