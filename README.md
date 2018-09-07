@@ -18,6 +18,7 @@ lookups using any source data (addresseds, keywords, etc.) against any Web or da
 source (you have access to), allowing you to write your own Python functions to extend
 system. And what system is that? You can learn it well, because almost every line of code
 accompanied by a Youtube video.
-Playlist :
 
-<iframe width="560"height="315"src="https://www.youtube.com/embed/videoserieslist=PLy-AlqZFg6G8tBTB6FFN68mryG4JlCaf-" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+Playlist : [![Pipulate] "https://www.youtube.com/playlist?list=PLy-AlqZFg6G8tBTB6FFN68mryG4JlCaf-"]
+
+
