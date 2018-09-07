@@ -19,5 +19,5 @@ source (you have access to), allowing you to write your own Python functions to 
 system. And what system is that? You can learn it well, because almost every line of code
 accompanied by a Youtube video.
 
-Playlist : [![Pipulate]](https://www.youtube.com/playlist?list=PLy-AlqZFg6G8tBTB6FFN68mryG4JlCaf-)
+Playlist : [[Pipulate]](https://www.youtube.com/playlist?list=PLy-AlqZFg6G8tBTB6FFN68mryG4JlCaf-)
 
