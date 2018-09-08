@@ -32,22 +32,47 @@ import globs #Create objects that don't have to be passed as arguments
 from flask import Flask, request, render_template
 from flask_wtf import FlaskForm
 from wtforms import validators, StringField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Optional, Required
 from flask_wtf.file import FileField, FileRequired
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
+class RequiredIf(object):
+    """Validates field conditionally.
+
+    Usage::
+
+        login_method = StringField('', [AnyOf(['email', 'facebook'])])
+        email = StringField('', [RequiredIf(login_method='email')])
+        password = StringField('', [RequiredIf(login_method='email')])
+        facebook_token = StringField('', [RequiredIf(login_method='facebook')])
+    """
+    def __init__(self, *args, **kwargs):
+        self.conditions = kwargs
+
+    def __call__(self, form, field):
+        for name, data in self.conditions.items():
+            if name not in form._fields:
+                Optional(form, field)
+            else:
+                condition_field = form._fields.get(name)
+                if condition_field.data == data and not field.data:
+                    Required()(form, field)
+        Optional()(form, field)
+
 class pipform(FlaskForm):
-    gkey = StringField('Your Google Spreadsheet Key', [validators.required()])
-    csvfile = FileField('Your CSV file')
+    gkey = StringField('Your Google Spreadsheet Key', [RequiredIf(csvfile='')]) 
+    csvfile = FileField('Your CSV file',  [RequiredIf(gkey='')])
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
     if request.method == 'POST':
         form = pipform(csrf_enabled=False)
         if form.validate_on_submit():
+            print('done')
             return "I would pipulate now"
+        print('i cant do it')
         return render_template('pipulate.html', form=form)
     else:
         if request.args:

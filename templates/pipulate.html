@@ -1,10 +1,11 @@
 <!doctype html>
 <title>Pipulate</title>
 <h1>Pipulate</h1>
-<form method="POST" action="/">
+<form method="POST" action="/" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     {{ form.gkey.label }} {{ form.gkey(size=60) }}
-    <input type="submit" value="Pipulate">
     <br>
     {{ form.csvfile.label }} {{ form.csvfile() }}
+    <br>
+    <input type="submit" value="Pipulate">
 </form>
