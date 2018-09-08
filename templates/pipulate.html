@@ -1,12 +1,10 @@
 <!doctype html>
-<title>Hello from Flask</title>
-{% if name %}
-  <h1>Hello {{ name }}!</h1>
-{% else %}
-  <h1>Hello, World!</h1>
-{% endif %}
+<title>Pipulate</title>
+<h1>Pipulate</h1>
 <form method="POST" action="/">
     {{ form.hidden_tag() }}
-    {{ form.name.label }} {{ form.name(size=20) }}
-    <input type="submit" value="Go">
+    {{ form.gkey.label }} {{ form.gkey(size=60) }}
+    <input type="submit" value="Pipulate">
+    <br>
+    {{ form.csvfile.label }} {{ form.csvfile() }}
 </form>

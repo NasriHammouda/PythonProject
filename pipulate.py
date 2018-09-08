@@ -31,26 +31,24 @@ accompanied by a Youtube video. Playlist in mikelevinseo youtube channel.
 import globs #Create objects that don't have to be passed as arguments
 from flask import Flask, request, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField
+from wtforms import validators, StringField
 from wtforms.validators import DataRequired
+from flask_wtf.file import FileField, FileRequired
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-class MyForm(FlaskForm):
-    name = StringField('name', validators=[DataRequired()])
-
-@app.route('/submit', methods=('GET', 'POST'))
-def submit():
-    form = MyForm()
-    if form.validate_on_submit():
-        return redirect('/success')
-    return render_template('submit.html', form=form)
+class pipform(FlaskForm):
+    gkey = StringField('Your Google Spreadsheet Key', [validators.required()])
+    csvfile = FileField('Your CSV file')
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
     if request.method == 'POST':
-        #A hook for uploading CSV files
-        return "CSV file upload"
+        form = pipform(csrf_enabled=False)
+        if form.validate_on_submit():
+            return "I would pipulate now"
+        return render_template('pipulate.html', form=form)
     else:
         if request.args:
             if "gkey" in request.args:
@@ -58,8 +56,8 @@ def main():
                 pipulate()
                 return "Replaced questionmarks"
         else:
-            form = MyForm(csrf_enabled=False)
-            return render_template('pipulate.html', form=form, name="Nasri")
+            form = pipform(csrf_enabled=False)
+            return render_template('pipulate.html', form=form,)
 
 def pipulate():
     """Allows processing of multiple worksheets
