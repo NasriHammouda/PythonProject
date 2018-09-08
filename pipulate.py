@@ -29,13 +29,25 @@ accompanied by a Youtube video. Playlist in mikelevinseo youtube channel.
 """
 
 import globs #Create objects that don't have to be passed as arguments
-from flask import Flask
+from flask import Flask, request, render_template
+from flask_wtf import FlaskForm
+from wtforms import StringField
+from wtforms.validators import DataRequired
+
 app = Flask(__name__)
-from flask import request
-from flask import render_template
+
+class MyForm(FlaskForm):
+    name = StringField('name', validators=[DataRequired()])
+
+@app.route('/submit', methods=('GET', 'POST'))
+def submit():
+    form = MyForm()
+    if form.validate_on_submit():
+        return redirect('/success')
+    return render_template('submit.html', form=form)
 
 @app.route("/", methods=['GET', 'POST'])
-def hello():
+def main():
     if request.method == 'POST':
         #A hook for uploading CSV files
         return "CSV file upload"
@@ -43,12 +55,13 @@ def hello():
         if request.args:
             if "gkey" in request.args:
                 globs.GKEY = request.args.get('gkey')
-                main()
+                pipulate()
                 return "Replaced questionmarks"
         else:
-            return render_template('pipulate.html', name="Nasri")
+            form = MyForm(csrf_enabled=False)
+            return render_template('pipulate.html', form=form, name="Nasri")
 
-def main():
+def pipulate():
     """Allows processing of multiple worksheets
 
     The purpose of this function is to feed Python lists representing rows
