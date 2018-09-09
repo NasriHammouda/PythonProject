@@ -61,30 +61,39 @@ class RequiredIf(object):
                     Required()(form, field)
         Optional()(form, field)
 
-class pipform(FlaskForm):
+class pipForm(FlaskForm):
     gkey = StringField('Your Google Spreadsheet Key', [RequiredIf(csvfile='')]) 
     csvfile = FileField('Your CSV file',  [RequiredIf(gkey='')])
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in globs.ALLOWED_EXTENSIONS
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
     if request.method == 'POST':
-        form = pipform(csrf_enabled=False)
+        form = pipForm(csrf_enabled=False)
         if form.validate_on_submit():
-            print('done')
-            return "I would pipulate now"
-        print('i cant do it')
+            if form.gkey.data:
+                globs.GKEY = form.gkey.data
+                pipulate('gdocs')
+                return "I pipulated Google Spreadsheet"
+            if form.csvfile.data:
+                import os
+                from flask import flash, redirect, url_for
+                app.config['UPLOAD_FOLDER'] = globs.UPLOAD_FOLDER
+                file = request.files['csvfile']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                pipulate('local')
+                return "I would have pipulated uploaded CSV file"
         return render_template('pipulate.html', form=form)
     else:
-        if request.args:
-            if "gkey" in request.args:
-                globs.GKEY = request.args.get('gkey')
-                pipulate()
-                return "Replaced questionmarks"
-        else:
-            form = pipform(csrf_enabled=False)
-            return render_template('pipulate.html', form=form,)
+        form = pipForm(csrf_enabled=False)
+        return render_template('pipulate.html', form=form,)
 
-def pipulate():
+def pipulate(dbsource):
     """Allows processing of multiple worksheets
 
     The purpose of this function is to feed Python lists representing rows
@@ -97,16 +106,15 @@ def pipulate():
     funcs = [x for x in globals().keys() if x[:2] != '__'] #list all functions
     globs.funcslc = [x.lower() for x in funcs] #lower-case all function names
     globs.transfunc = dict(zip(globs.funcslc, funcs)) #Keep translation table
-    for dbsource in ['gdocs', 'local']: #Each dbsource represents one worksheet
-        dbmethod = {'local': dblocal, 'gdocs': dbgdocs}
-        dbmethod[dbsource]()
-        print()
+    dbmethod = {'local': dblocal, 'gdocs': dbgdocs}
+    dbmethod[dbsource]()
 
 def dblocal():
     #This is the "shelve" route, necessary for big data sets, useful for csv's
     import shelve, csv
     allrows = shelve.open('drows.db')
-    with open('sample.csv', newline='') as csvfile:
+    import os
+    with open(os.path.join(app.config['UPLOAD_FOLDER'], 'sample.csv'), newline='') as csvfile:
         reader = csv.reader(csvfile)
         for rowdex, arow in enumerate(reader): #Dump entire csv into shelve.
             allrows[str(rowdex + 1)] = arow
