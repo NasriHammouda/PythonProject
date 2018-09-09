@@ -84,8 +84,8 @@ def main():
                 app.config['UPLOAD_FOLDER'] = globs.UPLOAD_FOLDER
                 file = request.files['csvfile']
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    globs.filename = secure_filename(file.filename)
+                    file.save(os.path.join(globs.UPLOAD_FOLDER, globs.filename))
                 pipulate('local')
                 return "I would have pipulated uploaded CSV file"
         return render_template('pipulate.html', form=form)
@@ -114,7 +114,7 @@ def dblocal():
     import shelve, csv
     allrows = shelve.open('drows.db')
     import os
-    with open(os.path.join(app.config['UPLOAD_FOLDER'], 'sample.csv'), newline='') as csvfile:
+    with open(os.path.join(globs.UPLOAD_FOLDER, globs.filename), newline='') as csvfile:
         reader = csv.reader(csvfile)
         for rowdex, arow in enumerate(reader): #Dump entire csv into shelve.
             allrows[str(rowdex + 1)] = arow
@@ -124,7 +124,7 @@ def dblocal():
     for rowkey in sorted(allrows): #Process each row (list) from the shelve
         newrow = processrow(rowkey, allrows[rowkey])
         allrows[rowkey] = newrow
-    with open('sampleout.csv', 'w', newline='') as f:
+    with open(os.path.join(globs.UPLOAD_FOLDER, globs.filename), 'w', newline='') as f:
         writer = csv.writer(f)
         for rowkey in sorted(allrows):
             writer.writerow(allrows[rowkey])
