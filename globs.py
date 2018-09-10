@@ -1,4 +1,4 @@
-GKEY = ''
+URL = ''
 fargs = {}
 row1 = []
 funcslc = []

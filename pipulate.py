@@ -62,7 +62,7 @@ class RequiredIf(object):
         Optional()(form, field)
 
 class pipForm(FlaskForm):
-    gkey = StringField('Your Google Spreadsheet Key', [RequiredIf(csvfile='')]) 
+    gkey = StringField('URL to Pipulate', [RequiredIf(csvfile='')]) 
     csvfile = FileField('Your CSV file',  [RequiredIf(gkey='')])
 
 def allowed_file(filename):
@@ -75,7 +75,7 @@ def main():
         form = pipForm(csrf_enabled=False)
         if form.validate_on_submit():
             if form.gkey.data:
-                globs.GKEY = form.gkey.data
+                globs.URL = form.gkey.data
                 pipulate('gdocs')
                 return "I pipulated Google Spreadsheet"
             if form.csvfile.data:
@@ -111,9 +111,12 @@ def pipulate(dbsource):
 
 def dblocal():
     #This is the "shelve" route, necessary for big data sets, useful for csv's
-    import shelve, csv
+    import shelve, csv, os
+    try:
+        os.remove('drows.db')
+    except OSError:
+        pass
     allrows = shelve.open('drows.db')
-    import os
     with open(os.path.join(globs.UPLOAD_FOLDER, globs.filename), newline='') as csvfile:
         reader = csv.reader(csvfile)
         for rowdex, arow in enumerate(reader): #Dump entire csv into shelve.
@@ -137,7 +140,7 @@ def dbgdocs():
     credentials = ServiceAccountCredentials.from_json_keyfile_name('gropey_secret.json', scope)
     gc = gspread.authorize(credentials)
     try:
-        wks = gc.open_by_key(globs.GKEY).sheet1 #HTTP connections errors happen here.
+        wks = gc.open_by_url(globs.URL).sheet1 #HTTP connections errors happen here.
         #https://docs.google.com/spreadsheets/d/14FBYSseJaYxxB6f3jl4PT0BhQsyNwXtLGhn892lylvY/edit?usp=sharing
     except:
         print("Couldn't reach Google Docs")
