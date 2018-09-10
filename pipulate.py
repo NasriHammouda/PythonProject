@@ -36,7 +36,7 @@ from wtforms.validators import DataRequired, Optional, Required
 from flask_wtf.file import FileField, FileRequired
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='/tmp', static_url_path='/tmp')
 
 class RequiredIf(object):
     """Validates field conditionally.
